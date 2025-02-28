@@ -1,37 +1,64 @@
-import Link from "next/link";
+/* eslint-disable @typescript-eslint/no-misused-promises */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+import { useLogin } from "@privy-io/react-auth";
+import { PrivyClient } from "@privy-io/server-auth";
+import { GetServerSideProps } from "next";
+import Head from "next/head";
+import { useRouter } from "next/router";
 
-export default function HomePage() {
+export const getServerSideProps: GetServerSideProps = async ({ req }) => {
+  const cookieAuthToken = req.cookies["privy-token"];
+
+  // If no cookie is found, skip any further checks
+  if (!cookieAuthToken) return { props: {} };
+
+  const PRIVY_APP_ID = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
+  const PRIVY_APP_SECRET = process.env.PRIVY_APP_SECRET;
+  const client = new PrivyClient(PRIVY_APP_ID!, PRIVY_APP_SECRET!);
+
+  try {
+    const claims = await client.verifyAuthToken(cookieAuthToken);
+    // Use this result to pass props to a page for server rendering or to drive redirects!
+    // ref https://nextjs.org/docs/pages/api-reference/functions/get-server-side-props
+    console.log({ claims });
+
+    return {
+      props: {},
+      redirect: { destination: "/dashboard", permanent: false },
+    };
+  } catch (error) {
+    return { props: {} };
+  }
+};
+
+export default function LoginPage() {
+  const router = useRouter();
+  const { login } = useLogin({
+    onComplete: () => router.push("/dashboard"),
+  });
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
-      <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
-        <h1 className="text-5xl font-extrabold tracking-tight text-white sm:text-[5rem]">
-          Create <span className="text-[hsl(280,100%,70%)]">T3</span> App
-        </h1>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8">
-          <Link
-            className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 text-white hover:bg-white/20"
-            href="https://create.t3.gg/en/usage/first-steps"
-            target="_blank"
-          >
-            <h3 className="text-2xl font-bold">First Steps →</h3>
-            <div className="text-lg">
-              Just the basics - Everything you need to know to set up your
-              database and authentication.
+    <>
+      <Head>
+        <title>Login · Privy</title>
+      </Head>
+
+      <main className="flex min-h-screen min-w-full">
+        <div className="flex bg-privy-light-blue flex-1 p-6 justify-center items-center">
+          <div>
+            <div className="mt-6 flex justify-center text-center">
+              <button
+                className="bg-violet-600 hover:bg-violet-700 py-3 px-6 text-white rounded-lg"
+                onClick={login}
+              >
+                Log in
+              </button>
             </div>
-          </Link>
-          <Link
-            className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 text-white hover:bg-white/20"
-            href="https://create.t3.gg/en/introduction"
-            target="_blank"
-          >
-            <h3 className="text-2xl font-bold">Documentation →</h3>
-            <div className="text-lg">
-              Learn more about Create T3 App, the libraries it uses, and how to
-              deploy it.
-            </div>
-          </Link>
+          </div>
         </div>
-      </div>
-    </main>
+      </main>
+    </>
   );
 }

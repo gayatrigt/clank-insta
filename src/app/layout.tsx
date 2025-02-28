@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
 import "~/styles/globals.css";
 
 import { GeistSans } from "geist/font/sans";
 import { type Metadata } from "next";
+import { PrivyProvider } from "@privy-io/react-auth";
 
 export const metadata: Metadata = {
   title: "Create T3 App",
@@ -14,7 +16,16 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${GeistSans.variable}`}>
-      <body>{children}</body>
+      <PrivyProvider
+        appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID || ""}
+        config={{
+          embeddedWallets: {
+            createOnLogin: "all-users",
+          },
+        }}
+      >
+        <body>{children}</body>
+      </PrivyProvider>
     </html>
   );
 }
