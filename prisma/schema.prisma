@@ -10,11 +10,22 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-model Post {
-    id        Int      @id @default(autoincrement())
-    name      String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+enum Platform {
+    instagram
+    tiktok
+}
 
-    @@index([name])
+model Post {
+    id              Int      @id @default(autoincrement())
+    videoUrl        String
+    creatorUserId   String
+    creatorUsername String
+    platform        Platform
+    caption         String
+    createdAt       DateTime @default(now())
+    updatedAt       DateTime @default(now())
+
+    tokenAddress String?
+    tokenName    String?
+    tokenSymbol  String?
 }
