@@ -19,29 +19,32 @@ export async function GET(request: Request) {
             .map((reel) => extractReelInfo(reel))
             .filter((reel): reel is ReturnType<typeof extractReelInfo> => reel !== null);
 
-        await db.post.createMany({
-            data: reelsInfo.map((reel) => ({
-                videoUrl: reel?.videoUrl,
-                // creatorUserId: reel?.userId,
-                // creatorUsername: reel?.username,
-                instagramPostId: reel?.postId,
-                platform: "instagram",
-                caption: reel?.caption,
-                creator: {
-                    connectOrCreate: {
-                        where: {
-                            creatorInstagramUserId: reel?.userId,
-                        },
-                        create: {
-                            username: reel?.username,
-                            creatorInstagramUserId: reel?.userId,
-                            creatorInstagramUsername: reel?.username,
-                            displayPicture: reel?.displayPicture
-                        }
-                    }
-                }
-            })),
-        });
+        // await db.post.createMany({
+        //     data: reelsInfo
+        //         .filter((reel) =>  reel?.videoUrl && reel?.postId && reel?.userId && reel?.username)
+        //         .map((reel) => ({
+        //             videoUrl: reel.videoUrl,
+        //             // creatorUserId: reel.userId,
+        //             // creatorUsername: reel.username,
+        //             instagramPostId: reel.postId,
+        //             platform: "instagram",
+        //             caption: reel.caption ?? "",
+        //             name: "Reel",
+        //             creator: {
+        //                 connectOrCreate: {
+        //                     where: {
+        //                         creatorInstagramUserId: reel.userId,
+        //                     },
+        //                     create: {
+        //                         username: reel.username,
+        //                         creatorInstagramUserId: reel.userId,
+        //                         creatorInstagramUsername: reel.username,
+        //                         displayPicture: reel.displayPicture ?? ""
+        //                     }
+        //                 }
+        //             }
+        //         })),
+        // });
 
         return NextResponse.json({ success: true });
     } catch (error) {
