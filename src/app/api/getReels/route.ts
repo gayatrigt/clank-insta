@@ -19,13 +19,12 @@ export async function GET(request: Request) {
             .map((reel) => extractReelInfo(reel))
             .filter((reel): reel is ReturnType<typeof extractReelInfo> => reel !== null);
 
-        console.log("🚀 ~ GET ~ reelsInfo:", reelsInfo);
-
         await db.post.createMany({
             data: reelsInfo.map((reel) => ({
                 videoUrl: reel?.videoUrl,
                 // creatorUserId: reel?.userId,
                 // creatorUsername: reel?.username,
+                instagramPostId: reel?.postId,
                 platform: "instagram",
                 caption: reel?.caption,
                 creator: {
