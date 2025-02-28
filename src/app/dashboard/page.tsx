@@ -24,10 +24,10 @@ export default function DashboardPage() {
     const { fundWallet } = useFundWallet();
 
     useEffect(() => {
-        if (ready && !authenticated) {
+        if (ready && !authenticated && !user) {
             router.push("/");
         }
-    }, [ready, authenticated, router]);
+    }, [ready, authenticated, router, user]);
 
     const uiOptions = {
         title: 'Sample title text',
