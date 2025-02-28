@@ -331,6 +331,7 @@ interface ReelInfo {
     postId: string;
     caption: string;
     videoUrl: string;
+    displayPicture: string;
 }
 
 export function extractReelInfo(media: Media): ReelInfo | null {
@@ -341,6 +342,7 @@ export function extractReelInfo(media: Media): ReelInfo | null {
         const postId = media.id.split('_')[0];
 
         const videoUrl = media.video_versions[0]?.url_original;
+        const displayPicture = media.user.profile_pic_url;
 
         if (!postId) {
             throw new Error('Post id is not found');
@@ -355,7 +357,8 @@ export function extractReelInfo(media: Media): ReelInfo | null {
             userId,
             postId,
             caption,
-            videoUrl
+            videoUrl,
+            displayPicture
         };
     }
     return null;

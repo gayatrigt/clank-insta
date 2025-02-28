@@ -24,10 +24,23 @@ export async function GET(request: Request) {
         await db.post.createMany({
             data: reelsInfo.map((reel) => ({
                 videoUrl: reel?.videoUrl,
-                creatorUserId: reel?.userId,
-                creatorUsername: reel?.username,
+                // creatorUserId: reel?.userId,
+                // creatorUsername: reel?.username,
                 platform: "instagram",
                 caption: reel?.caption,
+                creator: {
+                    connectOrCreate: {
+                        where: {
+                            creatorInstagramUserId: reel?.userId,
+                        },
+                        create: {
+                            username: reel?.username,
+                            creatorInstagramUserId: reel?.userId,
+                            creatorInstagramUsername: reel?.username,
+                            displayPicture: reel?.displayPicture
+                        }
+                    }
+                }
             })),
         });
 
