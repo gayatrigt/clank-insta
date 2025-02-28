@@ -16,16 +16,25 @@ enum Platform {
 }
 
 model Post {
-    id              Int      @id @default(autoincrement())
-    videoUrl        String
-    creatorUserId   String
-    creatorUsername String
-    platform        Platform
-    caption         String
-    createdAt       DateTime @default(now())
-    updatedAt       DateTime @default(now())
+    id       Int    @id @default(autoincrement())
+    videoUrl String
+
+    platform  Platform
+    caption   String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now())
 
     tokenAddress String?
     tokenName    String?
     tokenSymbol  String?
+}
+
+model User {
+    id                       Int     @id @default(autoincrement())
+    creatorInstagramUserId   String
+    creatorInstagramUsername String
+    privyId                  String?
+    privySubject             String?
+    smartWalletAddress       String?
+    privyWalletAddress       String?
 }
