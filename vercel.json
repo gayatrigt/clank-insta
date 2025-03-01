@@ -1,0 +1,6 @@
+{
+    "crons": [{
+      "path": "/api/get-reels",
+      "schedule": "*/2 * * * *"
+    }]
+  }
