@@ -7,6 +7,7 @@ export async function GET(request: Request) {
     const challenge = searchParams.get('hub.challenge');
 
     const VERIFY_TOKEN = 'clanker'; // Replace with your actual verify token
+    console.log('Webhook received: GET');
 
     if (mode && token === VERIFY_TOKEN) {
         if (mode === 'subscribe') {
