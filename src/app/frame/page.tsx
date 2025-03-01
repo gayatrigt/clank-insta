@@ -8,7 +8,7 @@ import { useSmartWallets } from '@privy-io/react-auth/smart-wallets';
 import { usePoolData } from '~/utils/hooks/usePoolData';
 import { useWalletBalance } from '~/utils/walletbalance';
 import { useTokenPosts } from '~/utils/hooks/useTokenPosts';
-import { useRouter } from 'next/navigation';
+import sdk from "@farcaster/frame-sdk";
 
 const frameMetadata = {
     version: "next",
@@ -18,7 +18,7 @@ const frameMetadata = {
         action: {
             type: "launch_frame",
             name: "Clank.Insta",
-            url: "https://clank-insta.vercel.app/", // Replace with your actual URL
+            url: "https://www.clank.in/frame", // Replace with your actual URL
             splashImageUrl: "https://clank-insta.vercel.app/splash.png", // Replace with your 200x200px splash image URL
             splashBackgroundColor: "#0f172a" // Slate background color to match your UI
         }
@@ -45,10 +45,25 @@ interface TokenData {
 
 const TradeReelsFeed = () => {
     const { posts, isLoadingData, errorData } = useTokenPosts();
-    const router = useRouter();
-
     // State for tokens
     const [tokens, setTokens] = useState<TokenData[]>([]);
+    const [isSDKLoaded, setIsSDKLoaded] = useState(false);
+
+    useEffect(() => {
+        const loadFrameSDK = async () => {
+            try {
+                await sdk.context;
+                void sdk.actions.ready();
+                setIsSDKLoaded(true);
+            } catch (error) {
+                console.error('Error loading Farcaster Frame SDK:', error);
+            }
+        };
+
+        if (!isSDKLoaded) {
+            void loadFrameSDK();
+        }
+    }, [isSDKLoaded]);
 
     // Process the posts and pool data when they change
     useEffect(() => {
@@ -235,11 +250,6 @@ const TradeReelsFeed = () => {
         }
     };
 
-    const handleLogout = async () => {
-        await logout();
-        router.push('/');
-    };
-
     const toggleDescription = (tokenId: string) => {
         setExpandedDescriptions(prev => ({
             ...prev,
@@ -269,16 +279,16 @@ const TradeReelsFeed = () => {
 
                         <div className="flex items-center space-x-2">
                             <div className="relative">
-                                <button
+                                {/* <button
                                     onClick={() => setShowWalletMenu(!showWalletMenu)}
                                     className="flex items-center border-2 border-slate-600 bg-black/20 backdrop-blur-sm rounded-md px-3 py-1"
                                 >
                                     <Wallet className="h-4 w-4 mr-2 text-white" />
                                     <span className="text-white text-sm">{balance} ETH</span>
-                                </button>
+                                </button> */}
 
                                 {/* Wallet dropdown menu */}
-                                {showWalletMenu && (
+                                {/* {showWalletMenu && (
                                     <div
                                         ref={walletMenuRef}
                                         className="fixed right-4 top-14 w-52 border-2 border-slate-100/20 bg-slate-900/90 backdrop-blur-md rounded-lg p-2 z-50 shadow-lg"
@@ -318,7 +328,7 @@ const TradeReelsFeed = () => {
                                             </button>
                                         </div>
                                     </div>
-                                )}
+                                )} */}
                             </div>
                         </div>
                     </div>
