@@ -30,8 +30,8 @@ export default function DashboardPage() {
     const router = useRouter();
     const [apiTokens, setApiTokens] = useState<APIToken[]>([]);
     const [tokenData, settokenData] = useState<TokenData[]>([]);
-    console.log("🚀 ~ DashboardPage ~ apiTokens:", apiTokens)
-    const instagramUsername = user?.instagram?.username
+    console.log("🚀 ~ DashboardPage ~ apiTokens:", apiTokens);
+    const instagramUsername = user?.instagram?.username;
 
     // Use our custom hook to fetch tokens for the logged-in user
     const { tokens, isLoading: isLoadingTokens, error, refetch } = useUserTokens(instagramUsername ?? undefined);
@@ -92,8 +92,6 @@ export default function DashboardPage() {
         return null;
     }
 
-    const token = apiTokens[0];
-
     return (
         <main className="min-h-[100dvh] flex flex-col bg-slate-900 relative max-w-md mx-auto">
             {/* Background video */}
@@ -115,7 +113,7 @@ export default function DashboardPage() {
                         <div className="flex items-center space-x-2">
                             <button
                                 onClick={() => router.push('/trade')}
-                                className="border-2 border-slate-600 bg-black/20 backdrop-blur-sm text-white rounded-md p-2 hover:border-slate-500 hover:bg-white/10"
+                                className="border-2 border-slate-600 text-xs px-4 bg-black/20 backdrop-blur-sm text-white rounded-md p-2 hover:border-slate-500 hover:bg-white/10"
                                 aria-label="Explore"
                             >
                                 Explore
@@ -208,41 +206,43 @@ export default function DashboardPage() {
                         </button>
                     </div>
 
-                    {apiTokens[0] ? (
+                    {apiTokens.length > 0 ? (
                         <div className="space-y-4">
-                            <div key={apiTokens[0]?.postId} className="border-2 border-slate-100/20 bg-slate-900/70 backdrop-blur-md rounded-lg overflow-hidden">
-                                <div className="p-4">
-                                    <div className="flex justify-between items-start mb-3">
-                                        <div>
-                                            <h4 className="text-white font-bold">{apiTokens[0]?.tokenName}</h4>
-                                            <p className="text-slate-400 text-sm">{tokenData[0]?.attributes.symbol}</p>
+                            {
+                                apiTokens.map(token => <div key={token?.postId} className="border-2 border-slate-100/20 bg-slate-900/70 backdrop-blur-md rounded-lg overflow-hidden">
+                                    <div className="p-4">
+                                        <div className="flex justify-between items-start mb-3">
+                                            <div>
+                                                <h4 className="text-white font-bold">{token?.tokenName}</h4>
+                                                <p className="text-slate-400 text-sm">{tokenData[0]?.attributes.symbol}</p>
+                                            </div>
+                                            <div className="flex items-center">
+                                                <span className="inline-block border border-slate-600 bg-black/30 text-white text-xs px-2 py-1 rounded-md mr-2">
+                                                    ${tokenData[0]?.attributes?.price_usd.toFixed(6) ?? '0'}
+                                                </span>
+
+                                                <span className="inline-block border border-slate-600 bg-black/30 text-white text-xs px-2 py-1 rounded-md">
+                                                    24h Volume: ${tokenData[0]?.attributes?.volume_usd?.h24?.toFixed(2) ?? '0'}
+                                                </span>
+                                            </div>
                                         </div>
-                                        <div className="flex items-center">
-                                            <span className="inline-block border border-slate-600 bg-black/30 text-white text-xs px-2 py-1 rounded-md mr-2">
-                                                ${tokenData[0]?.attributes?.price_usd.toFixed(6) ?? '0'}
-                                            </span>
 
-                                            <span className="inline-block border border-slate-600 bg-black/30 text-white text-xs px-2 py-1 rounded-md">
-                                                24h Volume: ${tokenData[0]?.attributes?.volume_usd?.h24?.toFixed(2) ?? '0'}
-                                            </span>
+                                        <div className="flex gap-4 mb-4">
+                                        </div>
+
+                                        <div className="flex gap-2 p-2">
+                                            <a
+                                                href={`https://dexscreener.com/base/${token?.tokenAddress}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="border-2 py-1 rounded-md bg-black/20 border-slate-600 backdrop-blur-sm text-white hover:border-slate-500 w-full hover:bg-white/10 text-xs text-center"
+                                            >
+                                                View on DEX
+                                            </a>
                                         </div>
                                     </div>
-
-                                    <div className="flex gap-4 mb-4">
-                                    </div>
-
-                                    <div className="flex gap-2 p-2">
-                                        <a
-                                            href={`https://dexscreener.com/base/${apiTokens[0]?.tokenAddress}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="border-2 py-1 rounded-md bg-black/20 border-slate-600 backdrop-blur-sm text-white hover:border-slate-500 w-full hover:bg-white/10 text-xs text-center"
-                                        >
-                                            View on DEX
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
+                                </div>)
+                            }
                         </div>
                     ) : (
                         <div className="border-2 border-slate-100/20 bg-slate-900/70 backdrop-blur-md rounded-lg p-6 text-center">
