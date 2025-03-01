@@ -9,7 +9,7 @@ import { parseCaption } from '~/utils/parseCaption';
 
 export async function GET(_request: Request) {
     // const { tag } = Object.fromEntries(new URL(request.url).searchParams);
-    const url = `https://instagram-bulk-profile-scrapper.p.rapidapi.com/clients/api/ig/media_by_tag?tag=dogs&feed_type=recent&corsEnabled=true`;
+    const url = `https://instagram-bulk-profile-scrapper.p.rapidapi.com/clients/api/ig/media_by_tag?tag=clankintime&feed_type=recent&corsEnabled=true`;
     const headers = {
         "x-rapidapi-host": "instagram-bulk-profile-scrapper.p.rapidapi.com",
         "x-rapidapi-key": env.RAPIDAPI_KEY,

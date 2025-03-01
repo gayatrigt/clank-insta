@@ -18,8 +18,7 @@ export async function generateSalt_v2(
     );
     let i = startingPoint;
     while (true) {
-        const salt = `0x${i.toString(16).padStart(64, "0")}` as `0x${string}`;
-
+        const salt: `0x${string}` = `0x${i.toString(16).padStart(64, "0")}`;
         const token = await predictToken_v2(
             deployer,
             fid,
@@ -39,7 +38,7 @@ export async function generateSalt_v2(
         }
 
         i += BigInt(
-            Math.floor(crypto.getRandomValues(new Uint8Array(1))[0] % 1000) + 1
+            Math.floor((crypto.getRandomValues(new Uint8Array(1))[0] ?? 0) % 1000) + 1
         );
     }
 }
