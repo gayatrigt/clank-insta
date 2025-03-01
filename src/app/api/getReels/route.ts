@@ -19,29 +19,58 @@ export async function GET(request: Request) {
             .map((reel) => extractReelInfo(reel))
             .filter((reel): reel is ReturnType<typeof extractReelInfo> => reel !== null);
 
-        await db.post.createMany({
-            data: reelsInfo.map((reel) => ({
-                videoUrl: reel?.videoUrl,
-                // creatorUserId: reel?.userId,
-                // creatorUsername: reel?.username,
-                instagramPostId: reel?.postId,
-                platform: "instagram",
-                caption: reel?.caption,
-                creator: {
-                    connectOrCreate: {
-                        where: {
-                            creatorInstagramUserId: reel?.userId,
-                        },
-                        create: {
-                            username: reel?.username,
-                            creatorInstagramUserId: reel?.userId,
-                            creatorInstagramUsername: reel?.username,
-                            displayPicture: reel?.displayPicture
+        for (const reel of reelsInfo) {
+            if (!reel) {
+                continue;
+            }
+
+            await db.post.create({
+                data: {
+                    videoUrl: reel.videoUrl,
+                    // creatorUserId: reel?.userId,
+                    // creatorUsername: reel?.username,
+                    instagramPostId: reel?.postId,
+                    platform: "instagram",
+                    caption: reel?.caption,
+                    thumbnail: reel?.thumbnail,
+                    creator: {
+                        connectOrCreate: {
+                            where: {
+                                creatorInstagramUserId: reel?.userId,
+                            },
+                            create: {
+                                creatorInstagramUserId: reel?.userId,
+                                creatorInstagramUsername: reel?.username,
+                                displayPicture: reel?.displayPicture
+                            }
                         }
                     }
                 }
-            })),
-        });
+            });
+
+            const { hash, tokenAddress } = await deployToken({
+                postId: reel.postId,
+                name: reel.username,
+                symbol: `INSTA${reel.postId}`,
+                fid: CLANKER_FID,
+                requestorAddress: CLANKER_WALLET_ADDRESS,
+                image: reel.thumbnail,
+                castHash: hash,
+            });
+
+            await db.post.update({
+                where: {
+                    instagramPostId: reel.postId,
+                },
+                data: {
+                    tokenAddress,
+                    tokenId: hash,
+                },
+            });
+        }
+
+        // deploy a token
+
 
         return NextResponse.json({ success: true });
     } catch (error) {

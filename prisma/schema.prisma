@@ -16,19 +16,24 @@ enum Platform {
 }
 
 model Post {
-    id       Int    @id @default(autoincrement())
-    videoUrl String
+    id Int @id @default(autoincrement())
 
     platform  Platform
     caption   String
     createdAt DateTime @default(now())
     updatedAt DateTime @default(now())
 
-    tokenAddress String?
-    tokenName    String?
-    tokenSymbol  String?
+    tokenAddress           String?
+    tokenName              String?
+    tokenSymbol            String?
+    poolAddress            String?
+    platformRewardsAddress String?
+    requestorAddress       String?
+    transactionHash        String?
 
+    videoUrl        String
     instagramPostId String?
+    thumbnail       String?
 
     creator   User? @relation(fields: [creatorId], references: [id])
     creatorId Int?
