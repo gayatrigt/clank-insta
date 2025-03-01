@@ -78,7 +78,6 @@ export const deployToken = async ({
 }): Promise<{ hash: `0x${string}`, tokenAddress: `0x${string}`; }> => {
     try {
         const initialTick = calculateInitialTick(0.01);
-        console.log("🚀 ~ walletClient.account:", walletClient.account.address);
 
         const tokenParams: TokenParams = {
             name,
@@ -112,33 +111,18 @@ export const deployToken = async ({
             abi: CLANKER_FACTORY_ABI,
             functionName: "deployToken",
             args: [
-                {
-                    _name: tokenParams.name,
-                    _symbol: tokenParams.symbol,
-                    _supply: tokenParams.supply,
-                    _fee: tokenParams.fee,
-                    _salt: salt,
-                    _deployer: requestorAddress,
-                    _fid: BigInt(fid),
-                    _image: image || "",
-                    _castHash: castHash,
-                    _poolConfig: poolConfig
-                }
+                tokenParams.name,
+                tokenParams.symbol,
+                tokenParams.supply,
+                tokenParams.fee,
+                salt,
+                requestorAddress,
+                BigInt(fid),
+                image || "",
+                castHash,
+                poolConfig,
             ],
         });
-        console.log("🚀 ~ :", {
-            _name: tokenParams.name,
-            _symbol: tokenParams.symbol,
-            _supply: tokenParams.supply,
-            _fee: tokenParams.fee,
-            _salt: salt,
-            _deployer: requestorAddress,
-            _fid: BigInt(fid),
-            _image: image || "",
-            _castHash: castHash,
-            _poolConfig: poolConfig
-        });
-        console.log("🚀 ~ deployCalldata:", deployCalldata);
 
         // Get current nonce
         const nonce = await publicClient.getTransactionCount({
@@ -149,16 +133,6 @@ export const deployToken = async ({
         const { maxFeePerGas, maxPriorityFeePerGas } =
             await publicClient.estimateFeesPerGas();
 
-        // console.log("🚀 ~:", {
-        //     to: CLANKER_FACTORY_V2,
-        //     data: deployCalldata,
-        //     account: account,
-        //     nonce,
-        //     maxFeePerGas,
-        //     maxPriorityFeePerGas,
-        // });
-
-
         // Send transaction
         const hash = await walletClient.sendTransaction({
             to: CLANKER_FACTORY_V2,
@@ -168,20 +142,20 @@ export const deployToken = async ({
             maxFeePerGas,
             maxPriorityFeePerGas,
         });
+        console.log("🚀 ~ hash:", hash);
 
-
-        await db.post.update({
-            where: {
-                id: postId,
-            },
-            data: {
-                tokenAddress: predictedTokenAddress,
-                poolAddress: CLANKER_FACTORY_V2,
-                platformRewardsAddress: CLANKER_WALLET_ADDRESS,
-                requestorAddress: CLANKER_WALLET_ADDRESS,
-                transactionHash: hash
-            }
-        });
+        // await db.post.update({
+        //     where: {
+        //         id: Number(postId),
+        //     },
+        //     data: {
+        //         tokenAddress: predictedTokenAddress,
+        //         poolAddress: CLANKER_FACTORY_V2,
+        //         platformRewardsAddress: CLANKER_WALLET_ADDRESS,
+        //         requestorAddress: CLANKER_WALLET_ADDRESS,
+        //         transactionHash: hash
+        //     }
+        // });
 
         // await saveDeployedToken({
         //     name,

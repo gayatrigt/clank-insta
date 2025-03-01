@@ -4,10 +4,11 @@ import { db } from "~/server/db";
 import { env } from '~/env';
 import { deployToken } from '~/utils/deployToken';
 import { CLANKER_FID, CLANKER_WALLET_ADDRESS } from '~/utils/config';
+import { parseCaption } from '~/utils/parseCaption';
 
 export async function GET(_request: Request) {
     // const { tag } = Object.fromEntries(new URL(request.url).searchParams);
-    const url = `https://instagram-bulk-profile-scrapper.p.rapidapi.com/clients/api/ig/media_by_tag?tag=clanker&feed_type=recent&corsEnabled=true`;
+    const url = `https://instagram-bulk-profile-scrapper.p.rapidapi.com/clients/api/ig/media_by_tag?tag=dogs&feed_type=recent&corsEnabled=true`;
     const headers = {
         "x-rapidapi-host": "instagram-bulk-profile-scrapper.p.rapidapi.com",
         "x-rapidapi-key": env.RAPIDAPI_KEY,
@@ -17,21 +18,25 @@ export async function GET(_request: Request) {
         const response = await fetch(url, { headers });
         const reels = await response.json() as { data: Media[]; };
 
+        console.log("🚀 ~ GET ~ reels:", reels);
         const reelsInfo = reels.data
             .map((reel) => extractReelInfo(reel))
-            .filter((reel): reel is ReturnType<typeof extractReelInfo> => reel !== null);
+            .filter((reel): reel is ReturnType<typeof extractReelInfo> => reel !== null)
+            .slice(0, 1);
 
+        console.log("🚀 ~ GET ~ reelsInfo:", reelsInfo);
         // console.log("🚀 ~ GET ~ reelsInfo:", reelsInfo);
         for (const reel of reelsInfo) {
             if (!reel) {
                 continue;
             }
 
-            // const alreadyExists = await db.post.findFirst({
-            //     where: {
-            //         instagramPostId: reel?.postId
-            //     }
-            // });
+            const alreadyExists = await db.post.findFirst({
+                where: {
+                    instagramPostId: reel?.postId
+                }
+            });
+            console.log("🚀 ~ GET ~ alreadyExists:", alreadyExists);
 
             // if (alreadyExists) continue;
 
@@ -58,30 +63,41 @@ export async function GET(_request: Request) {
                     }
                 }
             });
+            console.log("🚀 ~ GET ~ postRes:", postRes.id);
+
+            const { title, symbol } = await parseCaption(reel.caption);
 
             const { hash, tokenAddress } = await deployToken({
                 postId: reel.postId,
-                name: reel.username,
-                symbol: `INSTA${postRes.id}`,
+                name: title,
+                symbol: symbol,
                 fid: CLANKER_FID,
                 requestorAddress: CLANKER_WALLET_ADDRESS,
                 image: reel.thumbnail ?? "",
                 castHash: "",
             });
             console.log("🚀 ~ GET ~ hash, tokenAddress:", hash, tokenAddress);
+            console.log("🚀 ~ GET ~ ", {
+                tokenSymbol: symbol,
+                tokenName: title,
+                tokenAddress: String(tokenAddress),
+                transactionHash: String(hash),
+                requestorAddress: CLANKER_WALLET_ADDRESS
+            });
 
             await db.post.update({
                 where: {
-                    id: postRes.id,
+                    id: Number(postRes.id),
                 },
                 data: {
-                    tokenSymbol: `INSTA${postRes.id}`,
-                    tokenName: `INSTA${postRes.id}`,
-                    tokenAddress,
-                    transactionHash: hash,
+                    tokenSymbol: symbol,
+                    tokenName: title,
+                    tokenAddress: String(tokenAddress),
+                    transactionHash: String(hash),
                     requestorAddress: CLANKER_WALLET_ADDRESS
                 },
             });
+
         }
 
         return NextResponse.json({ success: true });

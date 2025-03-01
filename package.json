@@ -21,6 +21,7 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mdx}\" --cache"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
     "@prisma/client": "^5.14.0",
     "@privy-io/react-auth": "^2.5.0",
     "@privy-io/server-auth": "^1.18.10",
