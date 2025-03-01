@@ -10,7 +10,7 @@ export const env = createEnv({
     DATABASE_URL: z.string().url(),
     RAPIDAPI_KEY: z.string(),
     PRIVATE_KEY: z.string(),
-    NEYNAR_API_KEY: z.string(),
+    NEYNAR_API_KEY: z.string().optional(),
     ANTHROPIC_API_KEY: z.string(),
     NODE_ENV: z
       .enum(["development", "test", "production"])

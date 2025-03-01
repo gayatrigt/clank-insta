@@ -10,7 +10,7 @@ import { parseCaption } from '~/utils/parseCaption';
 
 export async function GET(_request: Request) {
     // const { tag } = Object.fromEntries(new URL(request.url).searchParams);
-    const url = `https://instagram-bulk-profile-scrapper.p.rapidapi.com/clients/api/ig/media_by_tag?tag=clanklaunch&feed_type=recent&corsEnabled=true`;
+    const url = `https://instagram-bulk-profile-scrapper.p.rapidapi.com/clients/api/ig/ig_profile?ig=72446861262&response_type=reels`;
     const headers = {
         "x-rapidapi-host": "instagram-bulk-profile-scrapper.p.rapidapi.com",
         "x-rapidapi-key": env.RAPIDAPI_KEY,
@@ -18,14 +18,22 @@ export async function GET(_request: Request) {
 
     try {
         const response = await fetch(url, { headers });
-        const reels = await response.json() as { data: Media[]; error?: string; message?: string; };
+        const reelsResp = await response.json() as { reels: { data: Media[]; }; error?: string; message?: string; }[];
 
-        if (reels.error) {
-            throw new Error(reels.message);
+
+        if (reelsResp[0]?.error) {
+            throw new Error(reelsResp[0].message);
+        }
+        console.log("🚀 ~ GET ~ reelsResp:", reelsResp);
+
+        const reels = reelsResp[0]?.reels?.data;
+
+        if (!reels?.length) {
+            throw new Error('Reels not found');
         }
 
-        console.log("🚀 ~ GET ~ reels:", reels);
-        const reelsInfo = reels.data
+        console.log("🚀 ~ GET ~ reels:", reelsResp);
+        const reelsInfo = reels
             .map((reel) => extractReelInfo(reel))
             .filter((reel): reel is ReturnType<typeof extractReelInfo> => reel !== null);
 
@@ -110,7 +118,7 @@ export async function GET(_request: Request) {
 
         }
 
-        return NextResponse.json({ success: true });
+        return NextResponse.json({ success: true, reels });
     } catch (error) {
         console.error(error);
         return NextResponse.json({ success: false, error: (error as any).message }, { status: 500 }); // eslint-disable-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
