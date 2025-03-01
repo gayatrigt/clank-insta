@@ -2,9 +2,8 @@
 import { NextResponse } from "next/server";
 import { env } from '~/env';
 import { db } from "~/server/db";
-import { CLANKER_FID, CLANKER_WALLET_ADDRESS } from '~/utils/config';
+import { CLANKER_WALLET_ADDRESS } from '~/utils/config';
 import { deployTokenClanker } from '~/utils/deployTokenClanker';
-import { deployToken } from '~/utils/deployTokenNeynar';
 import { extractReelInfo, type Media } from "~/utils/extractReelInfo";
 import { parseCaption } from '~/utils/parseCaption';
 
@@ -74,7 +73,7 @@ export async function GET(_request: Request) {
                     creator: {
                         connectOrCreate: {
                             where: {
-                                creatorInstagramUserId: reel?.userId,
+                                creatorInstagramUsername: reel?.username,
                             },
                             create: {
                                 creatorInstagramUserId: reel?.userId,
