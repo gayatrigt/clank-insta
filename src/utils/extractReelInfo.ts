@@ -332,6 +332,7 @@ interface ReelInfo {
     caption: string;
     videoUrl: string;
     displayPicture: string;
+    thumbnail?: string;
 }
 
 export function extractReelInfo(media: Media): ReelInfo | null {
@@ -358,7 +359,8 @@ export function extractReelInfo(media: Media): ReelInfo | null {
             postId,
             caption,
             videoUrl,
-            displayPicture
+            displayPicture,
+            thumbnail: media.image_versions2.candidates[0]?.url
         };
     }
     return null;
