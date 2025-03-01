@@ -362,7 +362,7 @@ const TradeReelsFeed = () => {
                             <div className="absolute bottom-4 left-4 right-4 border-2 border-slate-100/20 bg-slate-900/70 backdrop-blur-md rounded-lg p-3">
                                 <div className="flex items-center mb-2">
                                     <div className="relative h-8 w-8 rounded-full overflow-hidden border-2 border-slate-600 mr-2">
-                                        <Image
+                                        <img
                                             src={token.creatorAvatar || '/avatar-placeholder.png'}
                                             alt={token.creatorName}
                                             width={32}

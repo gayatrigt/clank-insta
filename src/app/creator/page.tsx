@@ -13,9 +13,9 @@ import { useSmartWallets } from "@privy-io/react-auth/smart-wallets";
 import { formatEther } from "viem";
 import { useWalletBalance } from "~/utils/walletbalance";
 import { useRouter } from "next/navigation";
-import { APIToken, useUserTokens } from "~/utils/hooks/useUserToken";
+import { type APIToken, useUserTokens } from "~/utils/hooks/useUserToken";
 import { set } from "zod";
-import { TokenData } from "~/utils/types/token";
+import { type TokenData } from "~/utils/types/token";
 
 export default function DashboardPage() {
     const { ready, authenticated, user, logout } = usePrivy();
@@ -30,8 +30,8 @@ export default function DashboardPage() {
     const router = useRouter();
     const [apiTokens, setApiTokens] = useState<APIToken[]>([]);
     const [tokenData, settokenData] = useState<TokenData[]>([]);
-    console.log("🚀 ~ DashboardPage ~ apiTokens:", apiTokens)
-    const instagramUsername = "sachintendulkar"
+    console.log("🚀 ~ DashboardPage ~ apiTokens:", apiTokens);
+    const instagramUsername = "sachintendulkar";
 
     // Use our custom hook to fetch tokens for the logged-in user
     const { tokens, isLoading: isLoadingTokens, error, refetch } = useUserTokens(instagramUsername ?? undefined);
@@ -92,7 +92,7 @@ export default function DashboardPage() {
         return null;
     }
 
-    const token = apiTokens[0]
+    const token = apiTokens[0];
 
     return (
         <main className="min-h-[100dvh] flex flex-col bg-slate-900 relative max-w-md mx-auto">
@@ -140,7 +140,7 @@ export default function DashboardPage() {
                         <div className="flex items-center">
                             <div className="flex-shrink-0 mr-4">
                                 <div className="relative h-16 w-16 rounded-full overflow-hidden border-2 border-slate-600">
-                                    <Image
+                                    <img
                                         src={apiTokens[0]?.displayPicture ?? "/api/placeholder/64/64"}
                                         alt="Profile"
                                         width={64}
