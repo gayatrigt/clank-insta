@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "routes": [
+    {
+      "src": "/api/get-reels",
+      "dest": "/api/get-reels"
+    }
+  ],
+  "cron": [
+    {
+      "schedule": "*/1 * * * *",
+      "url": "/api/get-reels"
+    }
+  ]
+}
