@@ -59,11 +59,10 @@ export const calculateInitialTick = (_priceInETH: number): number => {
     return initialTick;
 };
 
-export const deployToken = async ({
-    postId,
+export const deployTokenClanker = async ({
     name,
     symbol,
-    fid,
+    // fid,
     requestorAddress,
     image,
     castHash,
@@ -71,7 +70,7 @@ export const deployToken = async ({
     postId: string;
     name: string;
     symbol: string;
-    fid: number;
+    // fid: number;
     requestorAddress: `0x${string}`;
     image: string;
     castHash: string;
@@ -90,7 +89,7 @@ export const deployToken = async ({
         // Generate salt for token deployment
         const { salt, token: predictedTokenAddress }: GenerateSaltResult = await generateSalt_v2(
             requestorAddress,
-            BigInt(fid),
+            BigInt(0),
             tokenParams.name,
             tokenParams.symbol,
             image || "",
@@ -117,7 +116,7 @@ export const deployToken = async ({
                 tokenParams.fee,
                 salt,
                 requestorAddress,
-                BigInt(fid),
+                BigInt(0),
                 image || "",
                 castHash,
                 poolConfig,

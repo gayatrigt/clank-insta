@@ -1,15 +1,16 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { NextResponse } from "next/server";
-import { extractReelInfo, type Media } from "~/utils/extractReelInfo";
-import { db } from "~/server/db";
 import { env } from '~/env';
-import { deployToken } from '~/utils/deployToken';
+import { db } from "~/server/db";
 import { CLANKER_FID, CLANKER_WALLET_ADDRESS } from '~/utils/config';
+import { deployTokenClanker } from '~/utils/deployTokenClanker';
+import { deployToken } from '~/utils/deployTokenNeynar';
+import { extractReelInfo, type Media } from "~/utils/extractReelInfo";
 import { parseCaption } from '~/utils/parseCaption';
 
 export async function GET(_request: Request) {
     // const { tag } = Object.fromEntries(new URL(request.url).searchParams);
-    const url = `https://instagram-bulk-profile-scrapper.p.rapidapi.com/clients/api/ig/media_by_tag?tag=clankintime&feed_type=recent&corsEnabled=true`;
+    const url = `https://instagram-bulk-profile-scrapper.p.rapidapi.com/clients/api/ig/media_by_tag?tag=clanklaunch&feed_type=recent&corsEnabled=true`;
     const headers = {
         "x-rapidapi-host": "instagram-bulk-profile-scrapper.p.rapidapi.com",
         "x-rapidapi-key": env.RAPIDAPI_KEY,
@@ -43,7 +44,7 @@ export async function GET(_request: Request) {
             });
             console.log("🚀 ~ GET ~ alreadyExists:", alreadyExists);
 
-            if (alreadyExists) continue;
+            if (alreadyExists?.tokenAddress) continue;
 
             const postRes = await db.post.create({
                 data: {
@@ -72,23 +73,28 @@ export async function GET(_request: Request) {
 
             const { title, symbol } = await parseCaption(reel.caption);
 
-            const { hash, tokenAddress } = await deployToken({
+            const { tokenAddress } = await deployTokenClanker({
                 postId: reel.postId,
                 name: title,
                 symbol: symbol,
-                fid: CLANKER_FID,
                 requestorAddress: CLANKER_WALLET_ADDRESS,
                 image: reel.thumbnail ?? "",
                 castHash: "",
             });
-            console.log("🚀 ~ GET ~ hash, tokenAddress:", hash, tokenAddress);
-            console.log("🚀 ~ GET ~ ", {
-                tokenSymbol: symbol,
-                tokenName: title,
-                tokenAddress: String(tokenAddress),
-                transactionHash: String(hash),
-                requestorAddress: CLANKER_WALLET_ADDRESS
-            });
+
+            // const deploymentResp = await deployToken({
+            //     // postId: reel.postId,
+            //     name: title,
+            //     symbol: symbol,
+            //     // fid: CLANKER_FID,
+            //     owner: CLANKER_WALLET_ADDRESS,
+            //     description: reel.caption,
+            //     // image: reel.thumbnail ?? "",
+            //     // castHash: "",
+            // });
+
+            // const { hash, tokenAddress } = deploymentResp;
+            // const tokenAddress = deploymentResp.contract.fungible.address;
 
             await db.post.update({
                 where: {
@@ -98,7 +104,6 @@ export async function GET(_request: Request) {
                     tokenSymbol: symbol,
                     tokenName: title,
                     tokenAddress: String(tokenAddress),
-                    transactionHash: String(hash),
                     requestorAddress: CLANKER_WALLET_ADDRESS
                 },
             });
