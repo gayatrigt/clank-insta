@@ -61,6 +61,12 @@ export async function GET(_request: Request) {
 
             if (alreadyExists?.tokenAddress) continue;
 
+            const userCheck = await db.user.findFirst({
+                where: {
+                    creatorInstagramUsername: reel.username
+                }
+            });
+
             const postRes = await db.post.create({
                 data: {
                     videoUrl: reel.videoUrl,
@@ -73,7 +79,7 @@ export async function GET(_request: Request) {
                     creator: {
                         connectOrCreate: {
                             where: {
-                                creatorInstagramUsername: reel?.username,
+                                creatorInstagramUserId: userCheck?.creatorInstagramUserId
                             },
                             create: {
                                 creatorInstagramUserId: reel?.userId,
