@@ -1,75 +1,96 @@
+/* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
 "use client";
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { Share2, Play, Pause, Volume2, VolumeX, DollarSign, Wallet, ChevronDown, ChevronUp, CreditCard, LogOut } from "lucide-react";
 import Image from "next/image";
 import { useFundWallet, usePrivy } from '@privy-io/react-auth';
 import { useSmartWallets } from '@privy-io/react-auth/smart-wallets';
-import { log } from 'console';
+import { usePoolData } from '~/utils/hooks/usePoolData';
+import { useWalletBalance } from '~/utils/walletbalance';
+import { useTokenPosts } from '~/utils/hooks/useTokenPosts';
 
+// Define types for token data based on our API response
 interface TokenData {
     id: string;
     name: string;
+    address: string;
     creatorName: string;
     creatorHandle: string;
     price: number;
+    priceUsd: string;
     change: number;
     videoUrl: string;
     likes: number;
     holders: number;
     description: string;
+    creatorAvatar: string | null;
+    postId: number;
 }
 
 const TradeReelsFeed = () => {
-    const [tokens, setTokens] = useState<TokenData[]>([
-        {
-            id: '1',
-            name: 'Fashion Token',
-            creatorName: 'Style Maven',
-            creatorHandle: '@styleicon',
-            price: 0.021,
-            change: 5.2,
-            videoUrl: 'https://cdn.openai.com/ctf-cdn/paper-planes.mp4',
-            likes: 2487,
-            holders: 156,
-            description: 'Exclusive fashion tips and behind-the-scenes content. Support me for early access to my upcoming collection!'
-        },
-        {
-            id: '2',
-            name: 'Cooking Token',
-            creatorName: 'Chef Delight',
-            creatorHandle: '@culinarywizard',
-            price: 0.018,
-            change: -1.3,
-            videoUrl: 'https://cdn.openai.com/ctf-cdn/paper-planes.mp4',
-            likes: 1834,
-            holders: 89,
-            description: 'Sharing my secret recipes and cooking techniques. Token holders get access to my weekly virtual cooking classes!'
-        },
-        {
-            id: '3',
-            name: 'Travel Token',
-            creatorName: 'Wanderlust',
-            creatorHandle: '@globetrotter',
-            price: 0.032,
-            change: 12.7,
-            videoUrl: 'https://cdn.openai.com/ctf-cdn/paper-planes.mp4',
-            likes: 3255,
-            holders: 211,
-            description: 'Join me on my adventures around the world. Token holders can vote on my next destination!'
-        },
-        {
-            id: '4',
-            name: 'Fitness Token',
-            creatorName: 'Gym Guru',
-            creatorHandle: '@fitnessfanatic',
-            price: 0.015,
-            change: 2.1,
-            videoUrl: 'https://cdn.openai.com/ctf-cdn/paper-planes.mp4',
-            likes: 1542,
-            holders: 67,
-            description: 'Daily workout routines and fitness motivation. Supporting me gives you access to personal training sessions!'
-        }
-    ]);
+    const { posts, isLoadingData, errorData } = useTokenPosts();
+
+    // State for tokens
+    const [tokens, setTokens] = useState<TokenData[]>([]);
+
+    // Process the posts and pool data when they change
+    useEffect(() => {
+        if (!posts.length) return;
+
+        const processedTokens: TokenData[] = posts.map((post) => {
+            // Default values if pool data is not available
+            let price = 0;
+            let priceUsd = "0";
+            let change = 0;
+            let holders = 0;
+            let marketCap = "0";
+            let volume = "0";
+            let poolCreatedAt = new Date().toLocaleDateString();
+
+            // Extract pool data if available
+            if (post.poolData?.data) {
+                const pool = post.poolData.data;
+                price = parseFloat(pool.attributes.base_token_price_native_currency);
+                priceUsd = pool.attributes.base_token_price_usd;
+                change = parseFloat(pool.attributes.price_change_percentage.h24);
+                holders = pool.attributes.transactions.h24.buyers;
+                marketCap = pool.attributes.market_cap_usd;
+                volume = pool.attributes.volume_usd.h24;
+                poolCreatedAt = new Date(pool.attributes.pool_created_at).toLocaleDateString();
+            }
+
+            // Generate a handle from creator's username or use a placeholder
+            const creatorHandle = post.creator?.creatorInstagramUsername
+                ? `@${post.creator.creatorInstagramUsername}`
+                : post.tokenSymbol
+                    ? `@${post.tokenSymbol.toLowerCase()}`
+                    : '@unknown';
+
+            // Format the name from post data
+            const name = post.tokenName || 'Unknown Token';
+
+            return {
+                id: post.poolAddress || `post-${post.id}`,
+                postId: post.id,
+                name: name,
+                address: post.tokenAddress || '',
+                creatorName: post.creator?.creatorInstagramUsername || 'Unknown Creator',
+                creatorHandle: creatorHandle,
+                price: price,
+                priceUsd: priceUsd,
+                change: change,
+                videoUrl: post.videoUrl,
+                likes: Math.floor(Math.random() * 3000) + 1000, // Placeholder data
+                holders: holders,
+                description: `${post.caption || ''}\n Market cap: $${Number(marketCap).toLocaleString()}, 24h volume: $${Number(volume).toLocaleString()}`,
+                creatorAvatar: post.creator?.displayPicture || null
+            };
+        });
+
+        setTokens(processedTokens);
+    }, [posts]);
+
+    console.log(posts)
 
     const [inViewVideos, setInViewVideos] = useState<Record<string, boolean>>({});
     const { ready, authenticated, user, logout } = usePrivy();
@@ -83,6 +104,7 @@ const TradeReelsFeed = () => {
     const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
     const [showWalletMenu, setShowWalletMenu] = useState(false);
     const walletMenuRef = useRef<HTMLDivElement | null>(null);
+    const { balance, isLoading, error, refreshBalance } = useWalletBalance(walletAddress);
 
     useEffect(() => {
         const observers: Record<string, IntersectionObserver> = {};
@@ -128,11 +150,6 @@ const TradeReelsFeed = () => {
         };
     }, [tokens]);
 
-    const [wallet, setWallet] = useState({
-        address: "0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b",
-        balance: "3.45"
-    });
-
     // Helper functions
     const truncateAddress = (address: string) => {
         return address.length > 10 ? `${address.substring(0, 6)}...${address.substring(address.length - 4)}` : address;
@@ -177,8 +194,12 @@ const TradeReelsFeed = () => {
         }
     };
 
-    const handleBuy = (tokenId: string) => {
-        setShowBuyModal(tokenId);
+    const handleBuy = (tokenAddress: string) => {
+        // Create the Uniswap URL with the token address
+        const uniswapUrl = `https://app.uniswap.org/explore/tokens/base/${tokenAddress}`;
+
+        // Open in a new tab
+        window.open(uniswapUrl, '_blank', 'noopener,noreferrer');
     };
 
     const togglePlay = (tokenId: string) => {
@@ -204,6 +225,15 @@ const TradeReelsFeed = () => {
         }));
     };
 
+    // Show loading state while data is being fetched
+    if (isLoadingData) {
+        return (
+            <div className="min-h-[100dvh] flex flex-col items-center justify-center bg-slate-900">
+                <div className="text-white">Loading token data...</div>
+            </div>
+        );
+    }
+
     return (
         <main className="min-h-[100dvh] flex flex-col bg-slate-900 relative max-w-md mx-auto">
             {/* Background element */}
@@ -222,7 +252,7 @@ const TradeReelsFeed = () => {
                                     className="flex items-center border-2 border-slate-600 bg-black/20 backdrop-blur-sm rounded-md px-3 py-1"
                                 >
                                     <Wallet className="h-4 w-4 mr-2 text-white" />
-                                    <span className="text-white text-sm">{wallet.balance} ETH</span>
+                                    <span className="text-white text-sm">{balance} ETH</span>
                                 </button>
 
                                 {/* Wallet dropdown menu */}
@@ -256,8 +286,7 @@ const TradeReelsFeed = () => {
                                             <button
                                                 onClick={() => {
                                                     setShowWalletMenu(false);
-                                                    // Add logout logic here
-                                                    console.log("Logout clicked");
+
                                                 }}
                                                 className="flex items-center w-full text-left text-white text-sm py-2 px-2 rounded hover:bg-slate-800"
                                             >
@@ -311,12 +340,6 @@ const TradeReelsFeed = () => {
                                 >
                                     {playingVideos[token.id] ? <Pause size={20} /> : <Play size={20} />}
                                 </button>
-                                {/* <button
-                                    onClick={() => handleShare(token)}
-                                    className="border-2 border-slate-600 bg-black/30 backdrop-blur-sm text-white rounded-full p-2 w-10 h-10 flex items-center justify-center"
-                                >
-                                    <Share2 size={20} />
-                                </button> */}
                             </div>
 
                             {/* Token info card - more compact */}
@@ -324,7 +347,7 @@ const TradeReelsFeed = () => {
                                 <div className="flex items-center mb-2">
                                     <div className="relative h-8 w-8 rounded-full overflow-hidden border-2 border-slate-600 mr-2">
                                         <Image
-                                            src="/api/placeholder/32/32"
+                                            src={token.creatorAvatar || '/avatar-placeholder.png'}
                                             alt={token.creatorName}
                                             width={32}
                                             height={32}
@@ -337,7 +360,7 @@ const TradeReelsFeed = () => {
                                     </div>
                                     <div className="ml-auto flex items-center">
                                         <div className="ml-auto flex items-center">
-                                            <a href={`https://dex.example.com/token/${token.id}`}
+                                            {/* <a href={`https://dexscreener.com/base/${token.address}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="flex items-center text-xs mr-2 text-slate-400 hover:text-white">
@@ -347,13 +370,13 @@ const TradeReelsFeed = () => {
                                                     <polyline points="15 3 21 3 21 9"></polyline>
                                                     <line x1="10" y1="14" x2="21" y2="3"></line>
                                                 </svg>
-                                            </a>
+                                            </a> */}
                                             <div className="text-xs mr-2">
                                                 <span className="text-slate-400">Holders: </span>
                                                 <span className="text-white font-medium">{token.holders}</span>
                                             </div>
                                             <div className={`text-xs font-medium px-2 py-1 rounded ${token.change >= 0 ? 'bg-green-900/50 text-green-400' : 'bg-red-900/50 text-red-400'}`}>
-                                                {token.change >= 0 ? '+' : ''}{token.change}%
+                                                {token.change >= 0 ? '+' : ''}{token.change.toFixed(2)}%
                                             </div>
                                         </div>
                                     </div>
@@ -375,12 +398,12 @@ const TradeReelsFeed = () => {
                                 </div>
 
                                 <button
-                                    onClick={() => handleBuy(token.id)}
+                                    onClick={() => handleBuy(token.address)}
                                     className="border-2 py-2 rounded-md bg-black/20 border-slate-600 backdrop-blur-sm text-white hover:border-slate-500 w-full hover:bg-white/10"
                                 >
                                     <span className="flex items-center justify-center">
                                         <DollarSign className="h-4 w-4 mr-1" />
-                                        Collet for {token.price} ETH
+                                        Collect on Uniswap
                                     </span>
                                 </button>
                             </div>
@@ -414,7 +437,11 @@ const TradeReelsFeed = () => {
                         <div className="mb-4">
                             <div className="flex justify-between text-sm mb-1">
                                 <span className="text-slate-400">Price</span>
-                                <span className="text-white">{tokens.find(t => t.id === showBuyModal)?.price} ETH</span>
+                                <span className="text-white">{tokens.find(t => t.id === showBuyModal)?.price.toFixed(6)} ETH</span>
+                            </div>
+                            <div className="flex justify-between text-sm mb-1">
+                                <span className="text-slate-400">Price (USD)</span>
+                                <span className="text-white">${tokens.find(t => t.id === showBuyModal)?.priceUsd}</span>
                             </div>
                             <div className="flex justify-between text-sm mb-1">
                                 <span className="text-slate-400">Transaction fee</span>

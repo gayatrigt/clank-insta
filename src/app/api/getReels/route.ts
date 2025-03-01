@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { NextResponse } from "next/server";
 import { extractReelInfo, type Media } from "~/utils/extractReelInfo";
 import { db } from "~/server/db";
