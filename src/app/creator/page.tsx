@@ -10,6 +10,7 @@ import { useSmartWallets } from "@privy-io/react-auth/smart-wallets";
 import { publicClient } from "~/utils/client";
 import { formatEther } from "viem";
 import { useWalletBalance } from "~/utils/walletbalance";
+import { useRouter } from "next/navigation";
 
 export default function DashboardPage() {
     const { ready, authenticated, user, logout } = usePrivy();
@@ -17,9 +18,15 @@ export default function DashboardPage() {
     const [showAddFunds, setShowAddFunds] = useState(false);
     const walletAddress = user?.smartWallet?.address;
     const { fundWallet } = useFundWallet();
+    const router = useRouter();
 
     const { balance, isLoading, error, refreshBalance } = useWalletBalance(walletAddress);
 
+
+    const handleLogout = async () => {
+        await logout();
+        router.push('/login');
+    };
 
     // Sample data - would come from your API
     const [coins, setCoins] = useState([
@@ -77,7 +84,7 @@ export default function DashboardPage() {
                                 <span className="text-white text-sm">{wallet.balance} ETH</span>
                             </div> */}
                             <button
-                                onClick={logout}
+                                onClick={handleLogout}
                                 className="border-2 border-slate-600 bg-black/20 backdrop-blur-sm text-white rounded-md p-2 hover:border-slate-500 hover:bg-white/10"
                                 aria-label="Logout"
                             >
