@@ -9,7 +9,7 @@ export default function LoginPage() {
                 muted
                 autoPlay
                 playsInline
-                src="/clank.mp4"
+                src="https://cdn.openai.com/ctf-cdn/paper-planes.mp4"
             />
             <div className="container p-2 z-10">
                 <div className="text-white bg-slate-900/70 backdrop-blur-md border-2 border-slate-100/20 p-4 flex flex-col gap-2 pt-8 rounded-lg">

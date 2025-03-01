@@ -213,15 +213,7 @@ const TradeReelsFeed = () => {
     const handleBuy = (tokenAddress: string) => {
 
         // Create the Uniswap URL with the token address
-        let uniswapUrl = `https://app.uniswap.org/explore/tokens/base/${tokenAddress}`;
-
-
-        // check if the user is in iframe
-        const isFrame = window.parent !== window;
-
-        if (isFrame) {
-            uniswapUrl = `https://uniframe.org/explore/tokens/base/${tokenAddress}`;
-        }
+        const uniswapUrl = `https://app.uniswap.org/explore/tokens/base/${tokenAddress}`;
 
         // Open in a new tab
         window.open(uniswapUrl, '_blank', 'noopener,noreferrer');
