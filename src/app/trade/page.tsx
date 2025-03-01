@@ -8,6 +8,7 @@ import { useSmartWallets } from '@privy-io/react-auth/smart-wallets';
 import { usePoolData } from '~/utils/hooks/usePoolData';
 import { useWalletBalance } from '~/utils/walletbalance';
 import { useTokenPosts } from '~/utils/hooks/useTokenPosts';
+import { useRouter } from 'next/navigation';
 
 // Define types for token data based on our API response
 interface TokenData {
@@ -29,6 +30,7 @@ interface TokenData {
 
 const TradeReelsFeed = () => {
     const { posts, isLoadingData, errorData } = useTokenPosts();
+    const router = useRouter();
 
     // State for tokens
     const [tokens, setTokens] = useState<TokenData[]>([]);
@@ -52,8 +54,8 @@ const TradeReelsFeed = () => {
                 const pool = post.poolData.data;
                 price = parseFloat(pool.attributes.base_token_price_native_currency);
                 priceUsd = pool.attributes.base_token_price_usd;
-                change = parseFloat(pool.attributes.price_change_percentage.h24);
-                holders = pool.attributes.transactions.h24.buyers;
+                change = 0;
+                holders = 0;
                 marketCap = pool.attributes.market_cap_usd;
                 volume = pool.attributes.volume_usd.h24;
                 poolCreatedAt = new Date(pool.attributes.pool_created_at).toLocaleDateString();
@@ -218,6 +220,11 @@ const TradeReelsFeed = () => {
         }
     };
 
+    const handleLogout = async () => {
+        await logout();
+        router.push('/');
+    };
+
     const toggleDescription = (tokenId: string) => {
         setExpandedDescriptions(prev => ({
             ...prev,
@@ -286,6 +293,7 @@ const TradeReelsFeed = () => {
                                             <button
                                                 onClick={() => {
                                                     setShowWalletMenu(false);
+                                                    void handleLogout();
 
                                                 }}
                                                 className="flex items-center w-full text-left text-white text-sm py-2 px-2 rounded hover:bg-slate-800"
