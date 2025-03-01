@@ -16,15 +16,19 @@ export async function GET(_request: Request) {
 
     try {
         const response = await fetch(url, { headers });
-        const reels = await response.json() as { data: Media[]; };
+        const reels = await response.json() as { data: Media[]; error?: string; message?: string; };
+
+        if (reels.error) {
+            throw new Error(reels.message);
+        }
 
         console.log("🚀 ~ GET ~ reels:", reels);
         const reelsInfo = reels.data
             .map((reel) => extractReelInfo(reel))
-            .filter((reel): reel is ReturnType<typeof extractReelInfo> => reel !== null)
-            .slice(0, 1);
+            .filter((reel): reel is ReturnType<typeof extractReelInfo> => reel !== null);
 
         console.log("🚀 ~ GET ~ reelsInfo:", reelsInfo);
+        console.log("🚀 ~ GET ~ reelsInfo:", reelsInfo.length);
         // console.log("🚀 ~ GET ~ reelsInfo:", reelsInfo);
         for (const reel of reelsInfo) {
             if (!reel) {
@@ -38,7 +42,7 @@ export async function GET(_request: Request) {
             });
             console.log("🚀 ~ GET ~ alreadyExists:", alreadyExists);
 
-            // if (alreadyExists) continue;
+            if (alreadyExists) continue;
 
             const postRes = await db.post.create({
                 data: {
@@ -103,6 +107,6 @@ export async function GET(_request: Request) {
         return NextResponse.json({ success: true });
     } catch (error) {
         console.error(error);
-        return NextResponse.json({ success: false }, { status: 500 });
+        return NextResponse.json({ success: false, error: (error as any).message }, { status: 500 }); // eslint-disable-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     }
 }
