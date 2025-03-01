@@ -1,6 +1,7 @@
 import { anthropic } from './anthropic';
 
 export async function parseCaption(text: string): Promise<{ title: string; symbol: string; }> {
+    console.log("🚀 ~ parseCaption ~ text:", text);
     // Define the prompt for the Anthropic model
     try {
         // Make a request to the Anthropic API using the SDK
@@ -11,7 +12,7 @@ export async function parseCaption(text: string): Promise<{ title: string; symbo
                 {
                     role: "user",
                     // content: `Given the text: "${text}", check if there is a command to deploy a token. If yes, extract the title and symbol. If not, return "No command found". Dont give me any intro or out, just what I asked. The symbol should be all captial and starts with $.`
-                    content: `Given the text: "${text}", give me A title and symbol for a token related to this. If not, return "No command found". Dont give me any intro or out, just what I asked. The symbol should be all captial and starts with $.
+                    content: `Given the text: "${text}", give me A title and symbol for a token related to instagram caption. Be witty and creative. Dont give me any intro or out, just what I asked. The symbol should be all captial and starts with $.
                     Example Response: {"title":"MyToken", "symbol":"$MTK"}
                     `
                 },
@@ -23,7 +24,7 @@ export async function parseCaption(text: string): Promise<{ title: string; symbo
 
         // Check if the result indicates a command was found
         if (result.includes('No command found')) {
-            throw new Error('No command found');
+            throw new Error(`No command found in: ${text}`);
         }
 
         let json: { title: string; symbol: string; };
