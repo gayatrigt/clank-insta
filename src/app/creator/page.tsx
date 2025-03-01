@@ -30,8 +30,8 @@ export default function DashboardPage() {
     const router = useRouter();
     const [apiTokens, setApiTokens] = useState<APIToken[]>([]);
     const [tokenData, settokenData] = useState<TokenData[]>([]);
-    console.log("🚀 ~ DashboardPage ~ apiTokens:", apiTokens);
-    const instagramUsername = "sachintendulkar";
+    console.log("🚀 ~ DashboardPage ~ apiTokens:", apiTokens)
+    const instagramUsername = user?.instagram?.username
 
     // Use our custom hook to fetch tokens for the logged-in user
     const { tokens, isLoading: isLoadingTokens, error, refetch } = useUserTokens(instagramUsername ?? undefined);
