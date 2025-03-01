@@ -29,12 +29,11 @@ import { db } from '~/server/db';
 import { CLANKER_FACTORY_ABI } from '../abi/v2/Clanker';
 import { CLANKER_FACTORY_V3, CLANKER_WALLET_ADDRESS, WETH_ADDRESS } from './config';
 import { generateSalt_v2 } from './generateSalt';
+import { env } from '~/env';
 // import { saveDeployedToken } from './saveDeployedToken';
 
-console.log("🚀 ~ process.env.PRIVATE_KEY:", process.env.PRIVATE_KEY);
-
 export const account = privateKeyToAccount(
-    process.env.PRIVATE_KEY as `0x${string}`,
+    env.PRIVATE_KEY as `0x${string}`,
 );
 
 const walletClient = createWalletClient({
@@ -69,7 +68,7 @@ export const deployToken = async ({
     image,
     castHash,
 }: {
-    postId: number;
+    postId: string;
     name: string;
     symbol: string;
     fid: number;
@@ -79,6 +78,7 @@ export const deployToken = async ({
 }): Promise<{ hash: `0x${string}`, tokenAddress: `0x${string}`; }> => {
     try {
         const initialTick = calculateInitialTick(0.01);
+        console.log("🚀 ~ walletClient.account:", walletClient.account.address);
 
         const tokenParams: TokenParams = {
             name,
@@ -112,18 +112,33 @@ export const deployToken = async ({
             abi: CLANKER_FACTORY_ABI,
             functionName: "deployToken",
             args: [
-                tokenParams.name,
-                tokenParams.symbol,
-                tokenParams.supply,
-                tokenParams.fee,
-                salt,
-                requestorAddress,
-                BigInt(fid),
-                image || "",
-                castHash,
-                poolConfig,
+                {
+                    _name: tokenParams.name,
+                    _symbol: tokenParams.symbol,
+                    _supply: tokenParams.supply,
+                    _fee: tokenParams.fee,
+                    _salt: salt,
+                    _deployer: requestorAddress,
+                    _fid: BigInt(fid),
+                    _image: image || "",
+                    _castHash: castHash,
+                    _poolConfig: poolConfig
+                }
             ],
         });
+        console.log("🚀 ~ :", {
+            _name: tokenParams.name,
+            _symbol: tokenParams.symbol,
+            _supply: tokenParams.supply,
+            _fee: tokenParams.fee,
+            _salt: salt,
+            _deployer: requestorAddress,
+            _fid: BigInt(fid),
+            _image: image || "",
+            _castHash: castHash,
+            _poolConfig: poolConfig
+        });
+        console.log("🚀 ~ deployCalldata:", deployCalldata);
 
         // Get current nonce
         const nonce = await publicClient.getTransactionCount({
@@ -134,6 +149,16 @@ export const deployToken = async ({
         const { maxFeePerGas, maxPriorityFeePerGas } =
             await publicClient.estimateFeesPerGas();
 
+        // console.log("🚀 ~:", {
+        //     to: CLANKER_FACTORY_V3,
+        //     data: deployCalldata,
+        //     account: account,
+        //     nonce,
+        //     maxFeePerGas,
+        //     maxPriorityFeePerGas,
+        // });
+
+
         // Send transaction
         const hash = await walletClient.sendTransaction({
             to: CLANKER_FACTORY_V3,
@@ -143,6 +168,7 @@ export const deployToken = async ({
             maxFeePerGas,
             maxPriorityFeePerGas,
         });
+
 
         await db.post.update({
             where: {
