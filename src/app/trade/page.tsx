@@ -107,7 +107,6 @@ const TradeReelsFeed = () => {
         setTokens(processedTokens);
     }, [posts]);
 
-    console.log(posts)
 
     const [inViewVideos, setInViewVideos] = useState<Record<string, boolean>>({});
     const { ready, authenticated, user, logout } = usePrivy();
@@ -212,8 +211,17 @@ const TradeReelsFeed = () => {
     };
 
     const handleBuy = (tokenAddress: string) => {
+
         // Create the Uniswap URL with the token address
-        const uniswapUrl = `https://app.uniswap.org/explore/tokens/base/${tokenAddress}`;
+        let uniswapUrl = `https://app.uniswap.org/explore/tokens/base/${tokenAddress}`;
+
+
+        // check if the user is in iframe
+        const isFrame = window.parent !== window;
+
+        if (isFrame) {
+            uniswapUrl = `https://uniframe.org/explore/tokens/base/${tokenAddress}`;
+        }
 
         // Open in a new tab
         window.open(uniswapUrl, '_blank', 'noopener,noreferrer');
@@ -369,7 +377,7 @@ const TradeReelsFeed = () => {
                             <div className="absolute bottom-4 left-4 right-4 border-2 border-slate-100/20 bg-slate-900/70 backdrop-blur-md rounded-lg p-3">
                                 <div className="flex items-center mb-2">
                                     <div className="relative h-8 w-8 rounded-full overflow-hidden border-2 border-slate-600 mr-2">
-                                        <Image
+                                        <img
                                             src={token.creatorAvatar || '/avatar-placeholder.png'}
                                             alt={token.creatorName}
                                             width={32}
