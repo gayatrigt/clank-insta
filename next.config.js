@@ -5,6 +5,14 @@
 import "./src/env.js";
 
 /** @type {import("next").NextConfig} */
-const config = {};
+const config = {
+  reactStrictMode: true,
+  images: {
+    domains: [
+      'cdn.botdef.com',
+      // Add any other image domains you need here
+    ],
+  },
+};
 
 export default config;
