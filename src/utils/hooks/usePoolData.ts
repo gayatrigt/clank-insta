@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { PoolResponse } from '../types/gecko';
 
 interface UsePoolDataProps {
-  poolAddress: string;
+  tokenAddress: string;
   initialData?: PoolResponse;
 }
 
@@ -15,11 +15,13 @@ interface UsePoolDataReturn {
   refetch: () => Promise<void>;
 }
 
-export async function fetchPoolData(poolAddress: string): Promise<PoolResponse | null> {
-  if (!poolAddress) return null;
+export async function fetchPoolData(tokenAddress: string): Promise<PoolResponse | null> {
+  if (!tokenAddress) return null;
+
+  console.log(`Fetching pool data for ${tokenAddress}`);
   
   try {
-    const response = await fetch(`/api/pool/${poolAddress}`);
+    const response = await fetch(`/api/pool?tokenAddress=${tokenAddress}`);
     
     if (!response.ok) {
       throw new Error('Failed to fetch pool data');
@@ -27,13 +29,13 @@ export async function fetchPoolData(poolAddress: string): Promise<PoolResponse |
     
     return await response.json() as PoolResponse;
   } catch (error) {
-    console.error(`Error fetching pool data for ${poolAddress}:`, error);
+    console.error(`Error fetching pool data for ${tokenAddress}:`, error);
     return null;
   }
 }
 
 export function usePoolData({ 
-  poolAddress, 
+  tokenAddress, 
   initialData 
 }: UsePoolDataProps): UsePoolDataReturn {
   const [data, setData] = useState<PoolResponse | null>(initialData ?? null);
@@ -41,13 +43,13 @@ export function usePoolData({
   const [error, setError] = useState<Error | null>(null);
 
   const fetchData = async () => {
-    if (!poolAddress) return;
+    if (!tokenAddress) return;
     
     setIsLoading(true);
     setError(null);
     
     try {
-      const response = await fetch(`/api/pool/${poolAddress}`);
+      const response = await fetch(`/api/pool?tokenAddress=${tokenAddress}`);
       
       if (!response.ok) {
         throw new Error('Failed to fetch pool data');
@@ -66,7 +68,7 @@ export function usePoolData({
     if (!initialData) {
       void fetchData();
     }
-  }, [poolAddress]);
+  }, [tokenAddress]);
 
   const refetch = async () => {
     await fetchData();

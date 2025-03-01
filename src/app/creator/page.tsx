@@ -13,7 +13,9 @@ import { useSmartWallets } from "@privy-io/react-auth/smart-wallets";
 import { formatEther } from "viem";
 import { useWalletBalance } from "~/utils/walletbalance";
 import { useRouter } from "next/navigation";
-import { useUserTokens } from "~/utils/hooks/useUserToken";
+import { APIToken, useUserTokens } from "~/utils/hooks/useUserToken";
+import { set } from "zod";
+import { TokenData } from "~/utils/types/token";
 
 export default function DashboardPage() {
     const { ready, authenticated, user, logout } = usePrivy();
@@ -26,12 +28,46 @@ export default function DashboardPage() {
     const walletAddress = user?.smartWallet?.address;
     const { fundWallet } = useFundWallet();
     const router = useRouter();
-    const instagramUsername = 'sachintendulkar';
+    const [apiTokens, setApiTokens] = useState<APIToken[]>([]);
+    const [tokenData, settokenData] = useState<TokenData[]>([]);
+    console.log("🚀 ~ DashboardPage ~ apiTokens:", apiTokens)
+    const instagramUsername = user?.instagram?.username
 
     // Use our custom hook to fetch tokens for the logged-in user
-    const { tokens, isLoading: isLoadingTokens, error, refetch } = useUserTokens(instagramUsername);
+    const { tokens, isLoading: isLoadingTokens, error, refetch } = useUserTokens(instagramUsername ?? undefined);
 
-    console.log(tokens);
+    useEffect(() => {
+        const fetchTokens = async () => {
+            try {
+                if (!instagramUsername) {
+                    throw new Error('Instagram username is not defined');
+                }
+                const response = await fetch(`/api/user/tokens?username=${encodeURIComponent(instagramUsername)}`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch tokens');
+                }
+                const data = await response.json();
+                console.log(data);
+                setApiTokens(data.tokens);
+                // Handle the fetched data
+                console.log(data);
+
+                const responsetoken = await fetch(`/api/pool?tokenAddress=${data.tokens[0].tokenAddress}`);
+                if (!responsetoken.ok) {
+                    setApiTokens([]);
+                    return;
+                }
+                const datatoken = await responsetoken.json();
+                settokenData(datatoken.data);
+                console.log("Token data", datatoken);
+            } catch (error) {
+                console.error('Error fetching tokens:', error);
+            }
+        };
+
+        void fetchTokens();
+    }, [instagramUsername]);
+
 
     // Wallet balance hook
     const { balance, isLoading, refreshBalance } = useWalletBalance(walletAddress);
@@ -56,6 +92,8 @@ export default function DashboardPage() {
         return null;
     }
 
+    const token = apiTokens[0]
+
     return (
         <main className="min-h-[100dvh] flex flex-col bg-slate-900 relative max-w-md mx-auto">
             {/* Background video */}
@@ -76,6 +114,13 @@ export default function DashboardPage() {
 
                         <div className="flex items-center space-x-2">
                             <button
+                                onClick={() => router.push('/trade')}
+                                className="border-2 border-slate-600 bg-black/20 backdrop-blur-sm text-white rounded-md p-2 hover:border-slate-500 hover:bg-white/10"
+                                aria-label="Explore"
+                            >
+                                Explore
+                            </button>
+                            <button
                                 onClick={handleLogout}
                                 className="border-2 border-slate-600 bg-black/20 backdrop-blur-sm text-white rounded-md p-2 hover:border-slate-500 hover:bg-white/10"
                                 aria-label="Logout"
@@ -88,7 +133,7 @@ export default function DashboardPage() {
             </header>
 
             {/* Content */}
-            <div className="flex-1 overflow-auto z-10 p-4">
+            {apiTokens[0] ? (<div className="flex-1 overflow-auto z-10 p-4">
                 {/* User Profile */}
                 <section className="mb-6">
                     <div className="border-2 border-slate-100/20 bg-slate-900/70 backdrop-blur-md rounded-lg p-4">
@@ -96,7 +141,7 @@ export default function DashboardPage() {
                             <div className="flex-shrink-0 mr-4">
                                 <div className="relative h-16 w-16 rounded-full overflow-hidden border-2 border-slate-600">
                                     <Image
-                                        src={tokens[0]?.displayPicture ?? "/api/placeholder/64/64"}
+                                        src={apiTokens[0]?.displayPicture ?? "/api/placeholder/64/64"}
                                         alt="Profile"
                                         width={64}
                                         height={64}
@@ -134,15 +179,8 @@ export default function DashboardPage() {
                                 <TrendingUp className="h-5 w-5 text-white mb-1" />
                                 <p className="text-xs text-slate-400">Total Value</p>
                                 <p className="text-white font-bold">
-                                    ${totalMarketCap.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                                    ${tokenData[0]?.attributes?.fdv_usd?.toFixed(4) ?? '0'}
                                 </p>
-                            </div>
-                        </div>
-                        <div className="border-2 border-slate-100/20 bg-slate-900/70 backdrop-blur-md rounded-lg p-3">
-                            <div className="flex flex-col items-center">
-                                <Users className="h-5 w-5 text-white mb-1" />
-                                <p className="text-xs text-slate-400">Holders</p>
-                                <p className="text-white font-bold">{totalHolders}</p>
                             </div>
                         </div>
                         <div className="border-2 border-slate-100/20 bg-slate-900/70 backdrop-blur-md rounded-lg p-3">
@@ -170,89 +208,76 @@ export default function DashboardPage() {
                         </button>
                     </div>
 
-                    {isLoadingTokens ? (
-                        <div className="border-2 border-slate-100/20 bg-slate-900/70 backdrop-blur-md rounded-lg p-6 text-center">
-                            <p className="text-white flex items-center justify-center">
-                                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                                Loading tokens...
-                            </p>
+                    {apiTokens[0] ? (
+                        <div className="space-y-4">
+                            <div key={apiTokens[0]?.postId} className="border-2 border-slate-100/20 bg-slate-900/70 backdrop-blur-md rounded-lg overflow-hidden">
+                                <div className="p-4">
+                                    <div className="flex justify-between items-start mb-3">
+                                        <div>
+                                            <h4 className="text-white font-bold">{apiTokens[0]?.tokenName}</h4>
+                                            <p className="text-slate-400 text-sm">{tokenData[0]?.attributes.symbol}</p>
+                                        </div>
+                                        <div className="flex items-center">
+                                            <span className="inline-block border border-slate-600 bg-black/30 text-white text-xs px-2 py-1 rounded-md mr-2">
+                                                ${tokenData[0]?.attributes?.price_usd.toFixed(6) ?? '0'}
+                                            </span>
+
+                                            <span className="inline-block border border-slate-600 bg-black/30 text-white text-xs px-2 py-1 rounded-md">
+                                                24h Volume: ${tokenData[0]?.attributes?.volume_usd?.h24?.toFixed(2) ?? '0'}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex gap-4 mb-4">
+                                    </div>
+
+                                    <div className="flex gap-2 p-2">
+                                        <a
+                                            href={`https://dexscreener.com/base/${apiTokens[0]?.tokenAddress}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="border-2 py-1 rounded-md bg-black/20 border-slate-600 backdrop-blur-sm text-white hover:border-slate-500 w-full hover:bg-white/10 text-xs text-center"
+                                        >
+                                            View on DEX
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     ) : (
-                        <div className="space-y-4">
-                            {tokens.map((token) => (
-                                <div key={token.id} className="border-2 border-slate-100/20 bg-slate-900/70 backdrop-blur-md rounded-lg overflow-hidden">
-                                    <div className="p-4">
-                                        <div className="flex justify-between items-start mb-3">
-                                            <div>
-                                                <h4 className="text-white font-bold">{token.name}</h4>
-                                                <p className="text-slate-400 text-sm">{token.description}</p>
-                                            </div>
-                                            <div className="flex items-center">
-                                                <span className="inline-block border border-slate-600 bg-black/30 text-white text-xs px-2 py-1 rounded-md mr-2">
-                                                    {token.price.toFixed(6)} ETH
-                                                </span>
-                                                <span className={`inline-block text-xs px-2 py-1 rounded-md ${parseFloat(token.changePercentage) >= 0 ? 'bg-green-900/50 text-green-400' : 'bg-red-900/50 text-red-400'}`}>
-                                                    {parseFloat(token.changePercentage) >= 0 ? '+' : ''}{parseFloat(token.changePercentage).toFixed(2)}%
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex gap-4 mb-4">
-                                            <div>
-                                                <p className="text-slate-400 text-xs">Holders</p>
-                                                <p className="text-white text-sm">{token.holders}</p>
-                                            </div>
-                                            <div>
-                                                <p className="text-slate-400 text-xs">Price (USD)</p>
-                                                <p className="text-white text-sm">${parseFloat(token.priceUsd).toFixed(2)}</p>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex gap-2">
-                                            <a
-                                                href={`https://dexscreener.com/base/${token.address}`}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="border-2 py-1 rounded-md bg-black/20 border-slate-600 backdrop-blur-sm text-white hover:border-slate-500 w-full hover:bg-white/10 text-xs text-center"
-                                            >
-                                                View on DEX
-                                            </a>
-                                            {token.videoUrl && (
-                                                <a
-                                                    href={token.videoUrl}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="border-2 py-1 rounded-md bg-black/20 border-slate-600 backdrop-blur-sm text-white hover:border-slate-500 w-full hover:bg-white/10 text-xs text-center"
-                                                >
-                                                    View Reel
-                                                </a>
-                                            )}
-                                        </div>
-                                    </div>
+                        <div className="border-2 border-slate-100/20 bg-slate-900/70 backdrop-blur-md rounded-lg p-6 text-center">
+                            <div className="mb-4 flex justify-center">
+                                <div className="border-2 border-slate-600 bg-black/20 p-3 rounded-full">
+                                    <PlusCircle className="h-6 w-6 text-white" />
                                 </div>
-                            ))}
-
-                            {tokens.length === 0 && (
-                                <div className="border-2 border-slate-100/20 bg-slate-900/70 backdrop-blur-md rounded-lg p-6 text-center">
-                                    <div className="mb-4 flex justify-center">
-                                        <div className="border-2 border-slate-600 bg-black/20 p-3 rounded-full">
-                                            <PlusCircle className="h-6 w-6 text-white" />
-                                        </div>
-                                    </div>
-                                    <h4 className="text-white font-bold mb-2">No Tokens Yet</h4>
-                                    <p className="text-slate-400 text-sm mb-4">Create your first token from your Instagram reels</p>
-                                    <button
-                                        onClick={() => setShowCreateModal(true)}
-                                        className="border-2 py-2 rounded-md bg-black/20 border-slate-600 backdrop-blur-sm text-white hover:border-slate-500 w-full hover:bg-white/10"
-                                    >
-                                        Create New Token
-                                    </button>
-                                </div>
-                            )}
+                            </div>
+                            <h4 className="text-white font-bold mb-2">No Tokens Yet</h4>
+                            <p className="text-slate-400 text-sm mb-4">Create your first token from your Instagram reels</p>
+                            <button
+                                onClick={() => setShowCreateModal(true)}
+                                className="border-2 py-2 rounded-md bg-black/20 border-slate-600 backdrop-blur-sm text-white hover:border-slate-500 w-full hover:bg-white/10"
+                            >
+                                Create New Token
+                            </button>
                         </div>
                     )}
                 </section>
-            </div>
+            </div>) : (<div className="border-2 border-slate-100/20 bg-slate-900/70 backdrop-blur-md rounded-lg p-6 text-center mt-6">
+                <div className="mb-4 flex justify-center">
+                    <div className="border-2 border-slate-600 bg-black/20 p-3 rounded-full">
+                        <PlusCircle className="h-6 w-6 text-white" />
+                    </div>
+                </div>
+                <h4 className="text-white font-bold mb-2">No Tokens Yet</h4>
+                <p className="text-slate-400 text-sm mb-4">Create your first token from your Instagram reels</p>
+                <button
+                    onClick={() => setShowCreateModal(true)}
+                    className="border-2 py-2 rounded-md bg-black/20 border-slate-600 backdrop-blur-sm text-white hover:border-slate-500 w-full hover:bg-white/10"
+                >
+                    Create New Token
+                </button>
+            </div>)}
+
 
             {/* Footer */}
             <footer className="mt-auto border-t border-slate-100/20 backdrop-blur-md py-4 z-10">

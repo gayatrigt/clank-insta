@@ -71,11 +71,11 @@ export function useTokenPosts(): UseTokenPostsReturn {
       
       // Fetch pool data for each post
       const postsWithPoolDataPromises = postsWithToken.map(async (post) => {
-        if (!post.poolAddress) {
+        if (!post.tokenAddress) {
           return { ...post, poolData: null };
         }
         
-        const poolData = await fetchPoolData(post.poolAddress);
+        const poolData = await fetchPoolData(post.tokenAddress);
         return { ...post, poolData };
       });
       

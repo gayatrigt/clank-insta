@@ -10,7 +10,7 @@ const NETWORK = 'base';
 export async function GET(request: NextRequest) {
   // Get the pool address from the query parameter
   const { searchParams } = new URL(request.url);
-  const poolAddress = searchParams.get('address');
+  const poolAddress = searchParams.get('tokenAddress');
   
   if (!poolAddress) {
     return NextResponse.json(

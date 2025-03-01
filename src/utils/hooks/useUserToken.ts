@@ -24,7 +24,7 @@ export interface TokenData {
   displayPicture: string;
 }
 
-interface APIToken {
+export interface APIToken {
   postId: number;
   tokenAddress: string | null;
   username: string;
@@ -93,8 +93,8 @@ export function useUserTokens(instagramUsername: string | undefined): UseUserTok
       const tokenPromises = apiTokens
         .filter(token => token.tokenAddress) // Filter out tokens without pool addresses
         .map(async (token) => {
-          const poolAddress = token.tokenAddress;
-          const response = await fetch(`/api/pool/${poolAddress}`);
+          const tokenAddress = token.tokenAddress;
+          const response = await fetch(`/api/pool?tokenAdress=${tokenAddress}`);
           
           if (!response.ok) {
             throw new Error(`Failed to fetch pool data for ${token.tokenAddress}`);
