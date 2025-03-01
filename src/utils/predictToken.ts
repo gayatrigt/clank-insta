@@ -1,6 +1,6 @@
 import { encodeAbiParameters, encodePacked, keccak256 } from 'viem';
 import { clankerTokenArtifact } from '../abi/v2/ClankerToken';
-import { CLANKER_FACTORY_V3 } from './config';
+import { CLANKER_FACTORY_V2 } from './config';
 
 export async function predictToken_v2(
     deployer: `0x${string}`,
@@ -43,7 +43,7 @@ export async function predictToken_v2(
     const hash = keccak256(
         encodePacked(
             ["uint8", "address", "bytes32", "bytes32"],
-            [0xff, CLANKER_FACTORY_V3, create2Salt, creationCodeHash]
+            [0xff, CLANKER_FACTORY_V2, create2Salt, creationCodeHash]
         )
     );
     console.log("🚀 ~ hash:", hash);

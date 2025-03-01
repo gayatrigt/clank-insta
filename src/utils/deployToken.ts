@@ -27,7 +27,7 @@ import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
 import { db } from '~/server/db';
 import { CLANKER_FACTORY_ABI } from '../abi/v2/Clanker';
-import { CLANKER_FACTORY_V3, CLANKER_WALLET_ADDRESS, WETH_ADDRESS } from './config';
+import { CLANKER_FACTORY_V2, CLANKER_WALLET_ADDRESS, WETH_ADDRESS } from './config';
 import { generateSalt_v2 } from './generateSalt';
 import { env } from '~/env';
 // import { saveDeployedToken } from './saveDeployedToken';
@@ -150,7 +150,7 @@ export const deployToken = async ({
             await publicClient.estimateFeesPerGas();
 
         // console.log("🚀 ~:", {
-        //     to: CLANKER_FACTORY_V3,
+        //     to: CLANKER_FACTORY_V2,
         //     data: deployCalldata,
         //     account: account,
         //     nonce,
@@ -161,7 +161,7 @@ export const deployToken = async ({
 
         // Send transaction
         const hash = await walletClient.sendTransaction({
-            to: CLANKER_FACTORY_V3,
+            to: CLANKER_FACTORY_V2,
             data: deployCalldata,
             account: account,
             nonce,
@@ -176,7 +176,7 @@ export const deployToken = async ({
             },
             data: {
                 tokenAddress: predictedTokenAddress,
-                poolAddress: CLANKER_FACTORY_V3,
+                poolAddress: CLANKER_FACTORY_V2,
                 platformRewardsAddress: CLANKER_WALLET_ADDRESS,
                 requestorAddress: CLANKER_WALLET_ADDRESS,
                 transactionHash: hash
@@ -189,7 +189,7 @@ export const deployToken = async ({
         //     imgUrl: image,
         //     requestorAddress: CLANKER_WALLET_ADDRESS,
         //     hash: "",
-        //     poolAddress: CLANKER_FACTORY_V3,
+        //     poolAddress: CLANKER_FACTORY_V2,
         //     tokenAddress: predictedTokenAddress,
         //     authorFid: CLANKER_FID,
         //     platformRewardsAddress: CLANKER_WALLET_ADDRESS
