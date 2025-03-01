@@ -336,10 +336,10 @@ interface ReelInfo {
 }
 
 export function extractReelInfo(media: Media): ReelInfo | null {
+    console.log("🚀 ~ extractReelInfo ~ media:", media);
     // Check if the media is a reel
-    console.log("🚀 ~ extractReelInfo ~ media.media_type === 2 && media.product_type:", media.media_type, media.product_type);
-    const videoUrl = media.video_versions?.[0]?.url_original;
-    console.log("🚀 ~ extractReelInfo ~ videoUrl:", videoUrl);
+    const videoUrl = media.video_versions?.[0]?.url;
+
     if (media.media_type === 2 && media.product_type === 'clips') {
         const { username, id: userId } = media.user;
         const { text: caption } = media.caption;

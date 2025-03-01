@@ -18,7 +18,15 @@ export async function GET(_request: Request) {
 
     try {
         const response = await fetch(url, { headers });
-        const reelsResp = await response.json() as { reels: { data: Media[]; }; error?: string; message?: string; }[];
+        const reelsResp = await response.json() as {
+            reels: {
+                data: {
+                    media: Media;
+                }[];
+            };
+            error?: string;
+            message?: string;
+        }[];
 
 
         if (reelsResp[0]?.error) {
@@ -26,7 +34,7 @@ export async function GET(_request: Request) {
         }
         console.log("🚀 ~ GET ~ reelsResp:", reelsResp);
 
-        const reels = reelsResp[0]?.reels?.data;
+        const reels = reelsResp[0]?.reels?.data.map(a => a.media);
 
         if (!reels?.length) {
             throw new Error('Reels not found');

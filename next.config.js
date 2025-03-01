@@ -10,6 +10,7 @@ const config = {
   images: {
     domains: [
       'cdn.botdef.com',
+      'cdninstagram.com'
       // Add any other image domains you need here
     ],
   },
