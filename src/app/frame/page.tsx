@@ -122,6 +122,7 @@ const TradeReelsFeed = () => {
         setTokens(processedTokens);
     }, [posts]);
 
+    console.log(posts);
 
     const [inViewVideos, setInViewVideos] = useState<Record<string, boolean>>({});
     const { ready, authenticated, user, logout } = usePrivy();
@@ -227,10 +228,10 @@ const TradeReelsFeed = () => {
 
     const handleBuy = (tokenAddress: string) => {
         // Create the Uniswap URL with the token address
-        const uniswapUrl = `https://uniframe.org/explore/tokens/base/${tokenAddress}`;
+        const uniswapUrl = `https://app.uniswap.org/explore/tokens/base/${tokenAddress}`;
 
-        // Open in the same tab
-        window.location.href = uniswapUrl;
+        // Open in a new tab
+        window.open(uniswapUrl, '_blank', 'noopener,noreferrer');
     };
 
     const togglePlay = (tokenId: string) => {
